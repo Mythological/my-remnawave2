@@ -1,0 +1,40 @@
+services:
+  remnawave-nginx:
+    image: nginx:1.28
+    container_name: remnawave-nginx
+    hostname: remnawave-nginx
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt/live/DOMAIN/fullchain.pem:/etc/nginx/ssl/DOMAIN/fullchain.pem:ro
+      - /etc/letsencrypt/live/DOMAIN/privkey.pem:/etc/nginx/ssl/DOMAIN/privkey.pem:ro
+      - /dev/shm:/dev/shm:rw
+      - /var/www/html:/var/www/html:ro
+    command: sh -c 'rm -f /dev/shm/nginx.sock && nginx -g "daemon off;"'
+    network_mode: host
+    depends_on:
+      - remnanode
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '30m'
+        max-file: '5'
+
+  remnanode:
+    image: remnawave/node:latest
+    container_name: remnanode
+    hostname: remnanode
+    restart: always
+    network_mode: host
+    environment:
+      - NODE_PORT=2222
+      - SECRET_KEY=YOUR_SECRETKEY!!!!!!!!
+    volumes:
+      - /dev/shm:/dev/shm:rw
+      - /etc/letsencrypt/live/DOMAIN/fullchain.pem:/etc/letsencrypt/live/DOMAIN/fullchain.pem:ro
+      - /etc/letsencrypt/live/DOMAIN/privkey.pem:/etc/letsencrypt/live/DOMAIN/privkey.pem:ro
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '30m'
+        max-file: '5'
